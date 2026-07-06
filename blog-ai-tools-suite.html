@@ -19,15 +19,15 @@
      crossorigin="anonymous"></script>
      
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blog — Techsinghe Smart Tools</title>
-<meta name="description" content="Guides, tips and product news from Techsinghe Smart Tools, including updates on the upcoming AI Tools suite.">
+<title>What's Coming in the AI Tools Suite — Techsinghe Smart Tools</title>
+<meta name="description" content="A first look at the AI writing, coding and productivity tools now live in the AI Tools suite, and what they're built to help with.">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="canonical" href="https://techsinghge.in/blog.html">
+<link rel="canonical" href="https://techsinghge.in/blog-ai-tools-suite.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Techsinghe Smart Tools">
-<meta property="og:title" content="Blog — Techsinghe Smart Tools">
-<meta property="og:description" content="Guides, tips and product news from Techsinghe Smart Tools, including updates on the upcoming AI Tools suite.">
-<meta property="og:url" content="https://techsinghge.in/blog.html">
+<meta property="og:title" content="What's Coming in the AI Tools Suite — Techsinghe Smart Tools">
+<meta property="og:description" content="A first look at the AI writing, coding and productivity tools now live in the AI Tools suite, and what they're built to help with.">
+<meta property="og:url" content="https://techsinghge.in/blog-ai-tools-suite.html">
 <meta property="og:image" content="https://techsinghge.in/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +36,7 @@
 <link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
+
 <header>
   <nav>
     <a href="index.html" class="logo"><span class="logo-mark">TS</span>Techsinghe Smart Tools</a>
@@ -118,42 +119,56 @@
 </header>
 <div class="search-backdrop" id="searchBackdrop"></div>
 
+
 <section class="page-hero">
   <div class="hero-blobs" aria-hidden="true">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
   </div>
   <div class="wrap">
-    <span class="eyebrow">BLOG</span>
-    <h1>Guides, tips &amp; product news.</h1>
-    <p>How-tos for the toolkit, plus updates as the AI Tools suite rolls out. New posts are on the way.</p>
+    <span class="eyebrow">PRODUCT · AI TOOLS</span>
+    <h1>What's coming in the AI Tools suite.</h1>
+    <p>A first look at the growing collection of AI writing, coding and productivity tools now live alongside the PDF toolkit.</p>
   </div>
 </section>
 
 <section class="section">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow">LATEST</span>
-      <h2>Recent posts</h2>
+  <div class="wrap prose reveal">
+    <p><em>4 min read · Product update</em></p>
+
+    <h2>Why AI tools, alongside a PDF toolkit?</h2>
+    <p>The PDF and image tools on this site solve a "processing" problem — turning one file into another. The AI Tools suite solves a different problem: getting a blank page started, whether that's an essay, an email, a piece of code, or a resume. Both are things people reach for constantly and both deserve to be quick, free, and free of unnecessary friction.</p>
+
+    <h2>What's live right now</h2>
+    <div class="value-grid">
+      <div class="value-card">
+        <div class="vc-icon">✍️</div>
+        <h4>Writing</h4>
+        <p>Essay, blog, article, and story writers, plus grammar checking, rewriting, and text summarizing for anything you've already drafted.</p>
+      </div>
+      <div class="value-card">
+        <div class="vc-icon">💼</div>
+        <h4>Work &amp; career</h4>
+        <p>Resume builder, cover letter generator, professional email writer, and interview question generator for both sides of a job search.</p>
+      </div>
+      <div class="value-card">
+        <div class="vc-icon">💻</div>
+        <h4>Code</h4>
+        <p>Code generation and explanation, SQL query writing, and regex generation from a plain-English description.</p>
+      </div>
+      <div class="value-card">
+        <div class="vc-icon">📢</div>
+        <h4>Marketing &amp; social</h4>
+        <p>Social captions, hashtag generation, YouTube titles and descriptions, SEO meta tags, and product descriptions.</p>
+      </div>
     </div>
-    <div class="related-cards reveal-stagger" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-      <a class="related-card" href="blog-pdf-privacy.html">
-        <span class="rc-icon">🔒</span>
-        <h4>Why your PDF tools shouldn't need an upload</h4>
-        <p>A look at how in-browser processing keeps your files private.</p>
-      </a>
-      <a class="related-card" href="blog-organize-messy-pdf.html">
-        <span class="rc-icon">🧩</span>
-        <h4>5 ways to organize a messy PDF in minutes</h4>
-        <p>Merge, split, reorder and rotate — a practical walkthrough.</p>
-      </a>
-      <a class="related-card" href="blog-ai-tools-suite.html">
-        <span class="rc-icon">✨</span>
-        <h4>What's coming in the AI Tools suite</h4>
-        <p>A first look at the AI writing, coding &amp; productivity tools now live.</p>
-      </a>
-    </div>
-    <style>@media(max-width:860px){.related-cards{grid-template-columns:1fr !important;}}</style>
+    <p>See the complete, current list on the <a href="ai-tools.html">AI Tools page</a> — new tools are added there as they go live.</p>
+
+    <h2>How it's built</h2>
+    <p>Each tool sends your prompt to a small serverless function, which passes it to an AI model and returns the result — the same request/response shape as any other web form, just with an AI model on the other end instead of a database. Your API keys and provider details stay server-side; the browser only ever sees your own input and the generated output.</p>
+
+    <h2>What's next</h2>
+    <p>The near-term plan is straightforward: keep adding tools people actually ask for, keep them free to try, and keep the interface consistent with the rest of the site so switching between a PDF tool and an AI tool never feels like landing on a different product. If there's a specific AI tool you'd like to see, the <a href="contact.html">contact page</a> is the place to suggest it.</p>
   </div>
 </section>
 <footer>
