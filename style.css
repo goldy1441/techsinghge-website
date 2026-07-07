@@ -1256,3 +1256,8 @@ html[data-theme="dark"] .notif-panel{background:var(--paper-warm);}
 /* ---------- AdSense slot placeholders ---------- */
 .ad-slot{display:flex;align-items:center;justify-content:center;min-height:90px;background:var(--paper-warm);border:1px dashed var(--line);border-radius:12px;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin:28px auto;max-width:970px;}
 .ad-slot-sidebar{min-height:250px;max-width:300px;}
+
+/* ---------- "Coming soon" badge for not-yet-live tools (nav dropdown + tool cards) ---------- */
+.related-card.is-soon{opacity:.78;}
+.dd-badge, .rc-badge-soon{background:#FFE3B3;color:#8a5a00;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
+html[data-theme="dark"] .dd-badge, html[data-theme="dark"] .rc-badge-soon{background:#4d3a12;color:#ffcf7a;}

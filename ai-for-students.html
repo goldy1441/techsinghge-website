@@ -2,40 +2,43 @@
 <html lang="en">
 <head>
 <script>(function(){try{var t=localStorage.getItem("tspdf-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
-    <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-982CC194R0"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-982CC194R0');
 </script>
-    
-    
 <meta charset="UTF-8">
-
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3402329947973255"
-     crossorigin="anonymous"></script>
-     
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Log in — Techsinghe Smart Tools</title>
-<meta name="description" content="Accounts and the AI Tools suite are launching soon. Join the waitlist to be notified when sign-in opens.">
+<title>AI for Students — Free Study Tools | Techsinghe Smart Tools</title>
+<meta name="description" content="Free AI tools for students — essays, study questions, quizzes, resumes, coding help and calculators, all in one place.">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="canonical" href="https://techsinghge.in/login.html">
+<link rel="canonical" href="https://techsinghge.in/ai-for-students.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Techsinghe Smart Tools">
-<meta property="og:title" content="Log in — Techsinghe Smart Tools">
-<meta property="og:description" content="Accounts and the AI Tools suite are launching soon. Join the waitlist to be notified when sign-in opens.">
-<meta property="og:url" content="https://techsinghge.in/login.html">
+<meta property="og:title" content="AI for Students — Free Study Tools | Techsinghe Smart Tools">
+<meta property="og:description" content="Free AI tools for students — essays, study questions, quizzes, resumes, coding help and calculators, all in one place.">
+<meta property="og:url" content="https://techsinghge.in/ai-for-students.html">
 <meta property="og:image" content="https://techsinghge.in/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=20">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://techsinghge.in/" },
+    { "@type": "ListItem", "position": 2, "name": "AI for Students", "item": "https://techsinghge.in/ai-for-students.html" }
+  ]
+}
+</script>
 </head>
 <body>
+
 <header>
   <nav>
     <a href="index.html" class="logo"><span class="logo-mark">TS</span>Techsinghe Smart Tools</a>
@@ -122,95 +125,178 @@
     </div>
   </div>
 </header>
-<div class="search-backdrop" id="searchBackdrop"></div>
 
-<section class="soon-shell">
-  <div class="wrap" style="max-width:420px;">
-    <div class="soon-icon">🔐</div>
-    <h1>Log in</h1>
-    <p id="loginIntro">Sign in to access your account and the AI Tools suite.</p>
+<div class="wrap">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="index.html">Home</a><span class="sep">/</span>
+    <span class="current">AI for Students</span>
+  </nav>
+</div>
 
-    <form class="soon-form" id="loginForm" style="flex-direction:column;align-items:stretch;">
-      <input type="email" id="loginEmail" placeholder="you@email.com" required>
-      <input type="password" id="loginPassword" placeholder="Password" required style="margin-top:10px;padding:13px 16px;border-radius:999px;border:1px solid var(--line);font-family:inherit;font-size:14px;">
-      <button type="submit" class="btn btn-primary" style="margin-top:14px;">Log in</button>
-      <span class="form-msg" id="loginMsg"></span>
-    </form>
-
-    <p style="margin-top:14px;text-align:right;font-size:13px;"><a href="#" id="forgotPasswordLink">Forgot password?</a></p>
-
-    <div id="forgotBox" style="display:none;margin-top:6px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--paper-warm);text-align:left;">
-      <p style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Enter your email and we'll send you a link to reset your password.</p>
-      <input type="email" id="forgotEmail" placeholder="you@email.com" style="width:100%;padding:12px 16px;border-radius:999px;border:1px solid var(--line);font-family:inherit;font-size:14px;">
-      <button type="button" id="sendResetBtn" class="btn btn-primary" style="width:100%;margin-top:10px;">Send reset link</button>
-      <span class="form-msg" id="forgotMsg"></span>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--ink-soft);font-size:12.5px;">
-      <div style="flex:1;height:1px;background:var(--line);"></div>OR<div style="flex:1;height:1px;background:var(--line);"></div>
-    </div>
-    <button type="button" id="googleLoginBtn" class="btn btn-ghost" style="width:100%;">Continue with Google</button>
-
-    <p style="margin-top:22px;font-size:13px;color:var(--ink-soft);">No account yet? <a href="signup.html">Sign up →</a></p>
-    <p style="margin-top:10px;font-size:13px;"><a href="index.html#tools">← Back to the free toolkit</a> (no login needed)</p>
+<section class="page-hero">
+  <div class="hero-blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+  <div class="wrap">
+    <span class="eyebrow">AI FOR STUDENTS</span>
+    <h1>Free AI tools built for student life.</h1>
+    <p>From essay drafts and revision quizzes to your first resume and debugging a coding assignment — these free tools are grouped for what a student actually needs. Sign in free to start generating.</p>
   </div>
 </section>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  if (!window.TSPDF_AUTH) {
-    var msg = document.getElementById('loginIntro');
-    if (msg) msg.textContent = "Sign-in isn't configured yet — the site owner needs to add Firebase keys to firebase-config.js.";
-    return;
-  }
-  var form = document.getElementById('loginForm');
-  var out = document.getElementById('loginMsg');
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    out.classList.remove('show');
-    var email = document.getElementById('loginEmail').value;
-    var pass = document.getElementById('loginPassword').value;
-    window.TSPDF_AUTH.logIn(email, pass).then(function () {
-      out.textContent = 'Logged in — redirecting…';
-      out.classList.add('show');
-      setTimeout(function () { window.location.href = 'index.html'; }, 600);
-    }).catch(function (err) {
-      out.textContent = err.message;
-      out.classList.add('show');
-    });
-  });
-  var forgotLink = document.getElementById('forgotPasswordLink');
-  var forgotBox = document.getElementById('forgotBox');
-  var forgotEmail = document.getElementById('forgotEmail');
-  var forgotMsg = document.getElementById('forgotMsg');
-  forgotLink.addEventListener('click', function (e) {
-    e.preventDefault();
-    forgotBox.style.display = forgotBox.style.display === 'none' ? 'block' : 'none';
-    if (forgotBox.style.display === 'block') forgotEmail.value = document.getElementById('loginEmail').value;
-  });
-  document.getElementById('sendResetBtn').addEventListener('click', function () {
-    var email = forgotEmail.value.trim();
-    forgotMsg.classList.remove('show');
-    if (!email) { forgotMsg.textContent = 'Enter your email first.'; forgotMsg.classList.add('show'); return; }
-    window.TSPDF_AUTH.sendPasswordReset(email).then(function () {
-      forgotMsg.textContent = 'Reset link sent — check your inbox.';
-      forgotMsg.classList.add('show');
-    }).catch(function (err) {
-      forgotMsg.textContent = err.message;
-      forgotMsg.classList.add('show');
-    });
-  });
+<section class="section">
+  <div class="wrap">
+    <div class="tool-cat" id="cat-study-writing">
+      <h3>Essays, assignments & research</h3>
+      <div class="related-cards-grid reveal-stagger" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <a class="related-card" href="ai-essay-writer.html">
+        <span class="rc-icon">✍️</span>
+        <h4>AI Essay Writer</h4>
+        <p>Full structured essays from a topic.</p>
+      </a>
+      <a class="related-card" href="ai-article-writer.html">
+        <span class="rc-icon">📰</span>
+        <h4>AI Article Writer</h4>
+        <p>Well-researched articles, fast.</p>
+      </a>
+      <a class="related-card" href="ai-paragraph-writer.html">
+        <span class="rc-icon">📄</span>
+        <h4>AI Paragraph Writer</h4>
+        <p>One polished paragraph, instantly.</p>
+      </a>
+      <a class="related-card" href="ai-grammar-checker.html">
+        <span class="rc-icon">✅</span>
+        <h4>AI Grammar Checker</h4>
+        <p>Fix grammar and clarity before you submit.</p>
+      </a>
+      <a class="related-card" href="ai-rewrite-tool.html">
+        <span class="rc-icon">🔁</span>
+        <h4>AI Rewrite Tool</h4>
+        <p>Improve flow, keep your meaning.</p>
+      </a>
+      <a class="related-card" href="ai-text-summarizer.html">
+        <span class="rc-icon">📃</span>
+        <h4>AI Text Summarizer</h4>
+        <p>Condense long readings into key points.</p>
+      </a>
+      <a class="related-card" href="ai-humanizer.html">
+        <span class="rc-icon">🧑‍💻</span>
+        <h4>AI Humanizer</h4>
+        <p>Make AI-assisted drafts sound like you.</p>
+      </a>
+      <a class="related-card" href="pdf-to-text.html">
+        <span class="rc-icon">📄</span>
+        <h4>PDF to Text</h4>
+        <p>Pull text out of lecture PDFs to study from.</p>
+      </a>
+      </div>
+    </div>
+    <div class="tool-cat" id="cat-study-revision">
+      <h3>Revision, quizzes & test prep</h3>
+      <div class="related-cards-grid reveal-stagger" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <a class="related-card" href="ai-question-generator.html">
+        <span class="rc-icon">❓</span>
+        <h4>AI Question Generator</h4>
+        <p>Practice questions on any topic.</p>
+      </a>
+      <a class="related-card" href="ai-quiz-generator.html">
+        <span class="rc-icon">🧩</span>
+        <h4>AI Quiz Generator</h4>
+        <p>Full quizzes with answers, ready to use.</p>
+      </a>
+      <a class="related-card" href="ai-mcq-generator.html">
+        <span class="rc-icon">🔘</span>
+        <h4>AI MCQ Generator</h4>
+        <p>Multiple-choice practice questions.</p>
+      </a>
+      <a class="related-card" href="ai-faq-generator.html">
+        <span class="rc-icon">❔</span>
+        <h4>AI FAQ Generator</h4>
+        <p>Turn a topic into a study FAQ.</p>
+      </a>
+      </div>
+    </div>
+    <div class="tool-cat" id="cat-study-career">
+      <h3>Career prep</h3>
+      <div class="related-cards-grid reveal-stagger" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <a class="related-card" href="ai-resume-builder.html">
+        <span class="rc-icon">📄</span>
+        <h4>AI Resume Builder</h4>
+        <p>Your first ATS-friendly resume.</p>
+      </a>
+      <a class="related-card" href="ai-cover-letter-generator.html">
+        <span class="rc-icon">📋</span>
+        <h4>AI Cover Letter Generator</h4>
+        <p>Tailored cover letters for internships and jobs.</p>
+      </a>
+      <a class="related-card" href="ai-interview-question-generator.html">
+        <span class="rc-icon">🎙️</span>
+        <h4>AI Interview Question Generator</h4>
+        <p>Practice questions for any role.</p>
+      </a>
+      </div>
+    </div>
+    <div class="tool-cat" id="cat-study-coding">
+      <h3>Coding & STEM coursework</h3>
+      <div class="related-cards-grid reveal-stagger" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <a class="related-card" href="ai-coding-assistant.html">
+        <span class="rc-icon">🧑‍💻</span>
+        <h4>AI Coding Assistant</h4>
+        <p>Debug assignments and understand errors.</p>
+      </a>
+      <a class="related-card" href="ai-code-generator.html">
+        <span class="rc-icon">💻</span>
+        <h4>AI Code Generator</h4>
+        <p>Starter code for coursework, from plain English.</p>
+      </a>
+      <a class="related-card" href="ai-code-explainer.html">
+        <span class="rc-icon">🔍</span>
+        <h4>AI Code Explainer</h4>
+        <p>Understand code you were given, line by line.</p>
+      </a>
+      </div>
+    </div>
+    <div class="tool-cat" id="cat-study-utility">
+      <h3>Everyday calculators & utilities</h3>
+      <div class="related-cards-grid reveal-stagger" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+      <a class="related-card" href="percentage-calculator.html">
+        <span class="rc-icon">🧮</span>
+        <h4>Percentage Calculator</h4>
+        <p>Grades, marks, and quick percentage math.</p>
+      </a>
+      <a class="related-card" href="unit-converter.html">
+        <span class="rc-icon">📐</span>
+        <h4>Unit Converter</h4>
+        <p>Convert units for any subject.</p>
+      </a>
+      <a class="related-card" href="age-calculator.html">
+        <span class="rc-icon">🎂</span>
+        <h4>Age Calculator</h4>
+        <p>Quick date and age math.</p>
+      </a>
+      <a class="related-card" href="word-character-counter.html">
+        <span class="rc-icon">🔤</span>
+        <h4>Word & Character Counter</h4>
+        <p>Check word counts against assignment limits.</p>
+      </a>
+      </div>
+    </div>
+  </div>
+  <style>
+    @media(max-width:980px){ .related-cards-grid{grid-template-columns:repeat(2,1fr) !important;} }
+    @media(max-width:560px){ .related-cards-grid{grid-template-columns:1fr !important;} }
+  </style>
+</section>
 
-  document.getElementById('googleLoginBtn').addEventListener('click', function () {
-    window.TSPDF_AUTH.googleSignIn().then(function () {
-      window.location.href = 'index.html';
-    }).catch(function (err) {
-      out.textContent = err.message;
-      out.classList.add('show');
-    });
-  });
-});
-</script>
+<section class="section-tight" style="background:var(--paper-warm);">
+  <div class="wrap prose reveal">
+    <h2>How students use these tools</h2>
+    <p>Use the writing tools to get a first draft moving, then the AI Grammar Checker and AI Rewrite Tool to polish it in your own voice before you submit anything — treat AI output as a starting point, not a final answer, especially where your school has its own AI-use policy.</p>
+    <p>The quiz and question generators are handy for self-testing before an exam, and the calculators and converters stay free with no sign-in required, just like the rest of the PDF and Office toolkit.</p>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <div class="footer-newsletter">
@@ -301,5 +387,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="auth.js?v=2"></script>
+<script src="ai-gate.js?v=1"></script>
 </body>
 </html>

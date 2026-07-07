@@ -20,3 +20,8 @@ window.TSPDF_FIREBASE_CONFIG = {
    from the apex domain would first hit the apex→www redirect, which
    can break fetch() with a generic "Failed to fetch" error. */
 window.TSPDF_AI_ENDPOINT = "https://www.techsinghge.in/api/generateText";
+
+/* URL of the /api/generateImage serverless function — used by the
+   AI Image Generator and AI Logo Generator tools. Same key/backend
+   as above, just a different endpoint + model (Gemini image output). */
+window.TSPDF_AI_IMAGE_ENDPOINT = "https://www.techsinghge.in/api/generateImage";

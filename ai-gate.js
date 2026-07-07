@@ -29,7 +29,9 @@
 
   window.fetch = function (input, init) {
     var url = typeof input === 'string' ? input : (input && input.url) || '';
-    var isAiCall = window.TSPDF_AI_ENDPOINT && url === window.TSPDF_AI_ENDPOINT;
+    var isAiCall =
+      (window.TSPDF_AI_ENDPOINT && url === window.TSPDF_AI_ENDPOINT) ||
+      (window.TSPDF_AI_IMAGE_ENDPOINT && url === window.TSPDF_AI_IMAGE_ENDPOINT);
     // Only enforce the gate if Firebase auth is actually configured on this
     // deployment — if it isn't, fail open so the tool still works.
     if (isAiCall && window.TSPDF_AUTH && !isSignedIn()) {
