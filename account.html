@@ -22,7 +22,7 @@
 <title>Your Account — Techsinghge Smart Tools</title>
 <meta name="description" content="Manage your Techsinghge Smart Tools account — update your name and change your password.">
 <meta name="robots" content="noindex, nofollow">
-<link rel="canonical" href="https://techsinghge.in/account.html">
+<link rel="canonical" href="https://www.techsinghge.in/account.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -120,7 +120,7 @@
 <section class="soon-shell" id="accountLoading">
   <div class="wrap" style="max-width:420px;">
     <div class="soon-icon">🔐</div>
-    <h1>Loading your account…</h1>
+    <p class="soon-loading-title" style="font-size:22px;font-weight:700;">Loading your account…</p>
     <p>One moment.</p>
   </div>
 </section>
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var accountShell = document.getElementById('accountShell');
 
   if (!window.TSPDF_AUTH) {
-    loadingShell.querySelector('h1').textContent = "Accounts aren't configured yet";
+    loadingShell.querySelector('.soon-loading-title').textContent = "Accounts aren't configured yet";
     loadingShell.querySelector('p').textContent = 'The site owner needs to add Firebase keys to firebase-config.js.';
     return;
   }

@@ -1,5 +1,8 @@
 {
   "name": "techsinghe-pdf-tool",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
 }

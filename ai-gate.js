@@ -32,12 +32,30 @@
     var isAiCall =
       (window.TSPDF_AI_ENDPOINT && url === window.TSPDF_AI_ENDPOINT) ||
       (window.TSPDF_AI_IMAGE_ENDPOINT && url === window.TSPDF_AI_IMAGE_ENDPOINT);
+
+    if (!isAiCall) return originalFetch(input, init);
+
     // Only enforce the gate if Firebase auth is actually configured on this
     // deployment — if it isn't, fail open so the tool still works.
-    if (isAiCall && window.TSPDF_AUTH && !isSignedIn()) {
+    if (window.TSPDF_AUTH && !isSignedIn()) {
       redirectToLogin();
       return Promise.reject(new Error('Please sign in to use AI tools.'));
     }
-    return originalFetch(input, init);
+
+    // Attach the signed-in user's Firebase ID token so the API endpoint can
+    // verify the request server-side (client-side checks alone can be
+    // bypassed by calling the endpoint directly).
+    var attachTokenAndSend = function (idToken) {
+      init = init || {};
+      var headers = new Headers(init.headers || {});
+      if (idToken) headers.set('Authorization', 'Bearer ' + idToken);
+      init.headers = headers;
+      return originalFetch(input, init);
+    };
+
+    if (window.TSPDF_AUTH && typeof TSPDF_AUTH.getIdToken === 'function') {
+      return TSPDF_AUTH.getIdToken().then(attachTokenAndSend);
+    }
+    return attachTokenAndSend(null);
   };
 })();

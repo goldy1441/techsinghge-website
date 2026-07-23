@@ -70,9 +70,54 @@ const TOOL_PROMPTS = {
 
 const MAX_INPUT_CHARS = 4000;
 
+// Only these origins are allowed to call this endpoint. Restricting this
+// (instead of using "*") stops other sites from using your Gemini quota.
+const ALLOWED_ORIGINS = [
+  "https://www.techsinghge.in",
+  "https://techsinghge.in"
+];
+
+// --- Firebase ID token verification -----------------------------------
+// Requires the FIREBASE_SERVICE_ACCOUNT_KEY env var (the full JSON key
+// for a Firebase service account, as a single-line string) to be set in
+// Vercel. If it isn't set, verification is skipped and the endpoint
+// fails OPEN (same as today) so a fresh deployment doesn't break before
+// the env var is configured — set it as soon as possible.
+let _adminApp;
+function getAdmin() {
+  if (_adminApp) return _adminApp;
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) return null;
+  const admin = require("firebase-admin");
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
+    });
+  }
+  _adminApp = admin;
+  return admin;
+}
+
+async function verifyUser(req) {
+  const admin = getAdmin();
+  if (!admin) return { ok: true, uid: null }; // verification not configured yet — fail open
+  const authHeader = req.headers.authorization || "";
+  const match = authHeader.match(/^Bearer (.+)$/);
+  if (!match) return { ok: false };
+  try {
+    const decoded = await admin.auth().verifyIdToken(match[1]);
+    return { ok: true, uid: decoded.uid };
+  } catch (e) {
+    return { ok: false };
+  }
+}
+
 module.exports = async function handler(req, res) {
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
@@ -82,6 +127,12 @@ module.exports = async function handler(req, res) {
   }
   if (req.method !== "POST") {
     res.status(405).json({ error: "Use POST" });
+    return;
+  }
+
+  const auth = await verifyUser(req);
+  if (!auth.ok) {
+    res.status(401).json({ error: "Please sign in to use AI tools." });
     return;
   }
 

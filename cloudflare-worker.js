@@ -70,7 +70,7 @@ const TOOL_PROMPTS = {
 const MAX_INPUT_CHARS = 4000;
 
 // CHANGE THIS to your real website's origin before going live,
-// e.g. "https://techsinghge.in" — restricting it stops other
+// e.g. "https://www.techsinghge.in" — restricting it stops other
 // sites from using your free Gemini quota.
 const ALLOWED_ORIGIN = "*";
 
