@@ -1,0 +1,60 @@
+/* ============================================================
+   Firestore Security Rules — Techsinghge Smart Tools
+   Project: techsinghge-pdf-and-ai-tools
+
+   HOW TO DEPLOY:
+     Firebase Console → Firestore Database → Rules tab →
+     paste this file's contents → Publish.
+     (Or: `firebase deploy --only firestore:rules` if you use the CLI.)
+
+   MODEL:
+     - newsletter_subscribers: public CREATE only, with strict
+       validation. No public read/update/delete — only you (via
+       the Firebase Console, or an authenticated admin path you add
+       later) can view or manage entries.
+     - Everything else, including the old gate_pass_entries
+       collection, is denied entirely. That collection must NOT be
+       recreated — this file intentionally does not mention it, so
+       it falls under the default-deny rule below.
+   ============================================================ */
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /newsletter_subscribers/{docId} {
+
+      allow create: if
+        // Only the fields we expect — nothing extra can be smuggled in.
+        request.resource.data.keys().hasOnly(['email', 'page', 'createdAt']) &&
+        request.resource.data.keys().hasAll(['email', 'createdAt']) &&
+
+        // Reasonable, well-formed email string.
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 3 &&
+        request.resource.data.email.size() <= 254 &&
+        request.resource.data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$') &&
+
+        // 'page' is optional, but if present must be a short string.
+        (!('page' in request.resource.data) ||
+          (request.resource.data.page is string &&
+           request.resource.data.page.size() <= 200)) &&
+
+        // Must be the server timestamp, not a client-supplied date.
+        request.resource.data.createdAt == request.time;
+
+      // No public reads, updates, or deletes — only accessible via the
+      // Firebase Console or a server-side admin operation you add later.
+      allow read: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Default deny for every other collection/document in the project —
+    // this includes the old gate_pass_entries collection, which must
+    // stay removed and NOT be recreated.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

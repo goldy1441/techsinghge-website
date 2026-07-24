@@ -34,30 +34,51 @@ document.addEventListener('DOMContentLoaded', () => {
     revealEls.forEach(el => el.classList.add('in-view'));
   }
 
-  /* ---------- Animated counters (hero stats) ---------- */
+  /* ---------- Animated counters (hero stats) ----------
+     NOTE: the HTML already contains the real number as its default
+     text (e.g. data-target="67">67), so if this script never runs
+     (blocked, errors elsewhere, no JS) the correct number is still
+     visible — this animation is a pure visual enhancement, never
+     the source of truth for the number itself. */
   const counters = document.querySelectorAll('.counter');
-  const animateCounter = (el) => {
-    const target = parseInt(el.dataset.target, 10) || 0;
-    if (target === 0) { el.textContent = '0'; return; }
-    const dur = 1100;
-    const start = performance.now();
-    const step = (now) => {
-      const p = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(eased * target);
-      if (p < 1) requestAnimationFrame(step);
+  try {
+    const animateCounter = (el) => {
+      const target = parseInt(el.dataset.target, 10);
+      if (!Number.isFinite(target)) return; // leave the real number already in the HTML alone
+      const dur = 1100;
+      const start = performance.now();
+      const step = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(eased * target);
+        if (p < 1) requestAnimationFrame(step);
+        else el.textContent = target; // guarantee exact final value
+      };
+      requestAnimationFrame(step);
     };
-    requestAnimationFrame(step);
-  };
-  if ('IntersectionObserver' in window && counters.length) {
-    const cio = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) { animateCounter(entry.target); cio.unobserve(entry.target); }
-      });
-    }, { threshold: 0.5 });
-    counters.forEach(c => cio.observe(c));
-  } else {
-    counters.forEach(c => { c.textContent = c.dataset.target; });
+    if ('IntersectionObserver' in window && counters.length) {
+      const cio = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) { animateCounter(entry.target); cio.unobserve(entry.target); }
+        });
+      }, { threshold: 0.5 });
+      counters.forEach(c => cio.observe(c));
+      // Safety net: if a counter never crosses the 0.5 visibility threshold
+      // (short viewport, reduced motion, etc.), force it to its real value
+      // after a few seconds so it can never sit wrong indefinitely.
+      setTimeout(() => {
+        counters.forEach(c => {
+          const target = parseInt(c.dataset.target, 10);
+          if (Number.isFinite(target)) c.textContent = target;
+        });
+      }, 4000);
+    }
+    // If IntersectionObserver isn't supported, do nothing extra — the
+    // HTML's own default text is already the correct number.
+  } catch (e) {
+    // Any unexpected error here must not blank out the real numbers —
+    // the HTML defaults already shown are correct on their own.
+    console.error('Counter animation failed (harmless — numbers already shown):', e);
   }
 
   /* ---------- Privacy banner mouse-glow ---------- */
@@ -289,17 +310,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
   });
 
-  /* ---------- Newsletter form (client-side stub, no backend yet) ---------- */
-  document.querySelectorAll('.newsletter-form, .soon-form').forEach(form => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const msg = form.querySelector('.form-msg');
-      const input = form.querySelector('input[type="email"], input');
-      if (msg) {
-        msg.textContent = "You're on the list — we'll email " + (input ? input.value : 'you') + ' when this launches.';
-        msg.classList.add('show');
-      }
-      form.reset();
-    });
-  });
+  /* NOTE (fixed): a legacy "client-side stub, no backend yet" handler used to
+     live here, attached to '.newsletter-form, .soon-form'. Every real
+     newsletter form on the site also carries the '.newsletter-form' class
+     (e.g. class="newsletter-form real-newsletter-form"), and login.html /
+     signup.html's forms carried '.soon-form' too — so this stub was
+     attaching a SECOND submit listener to forms that already have a real
+     handler (site-enhance.js for newsletter signups, inline scripts for
+     login/signup). Because this stub registered first (main.js loads
+     before site-enhance.js) and called form.reset() synchronously, it was
+     wiping the email field before the real Firestore-save handler ever
+     read it — meaning newsletter signups were silently never actually
+     saved. Removed entirely; every form that needs real handling now has
+     it (see site-enhance.js and each page's own login/signup script).
+     If you add a genuinely-not-yet-wired "coming soon" form in future,
+     give it its own distinct class rather than reusing these. */
 });

@@ -98,8 +98,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ---------- Newsletter forms with class "real-newsletter-form" (footer + popup) ----------
      Saves the email to Firestore (collection: newsletter_subscribers). Firebase is already
-     initialized by auth.js (loaded before this file runs). If Firestore isn't reachable for
-     any reason, we still show the "Thanks!" message so the page never looks broken. */
+     initialized by auth.js (loaded before this file runs). On success we show a real success
+     message AND fire 'tspdf-newsletter-saved' on the form so other listeners (e.g. the popup
+     below) can react to the true outcome instead of just the submit action. On failure we
+     show an honest error and do NOT fire that event, so nothing treats the visitor as
+     subscribed when nothing was actually saved. */
   document.querySelectorAll('.real-newsletter-form').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -108,25 +111,39 @@ document.addEventListener('DOMContentLoaded', function () {
       var email = emailInput ? emailInput.value.trim() : '';
       var btn = form.querySelector('button[type="submit"]');
 
-      function finish() {
-        if (msg) msg.textContent = "Thanks! We'll be in touch.";
+      function succeed() {
+        if (msg) { msg.textContent = "Thanks! We'll be in touch."; msg.classList.remove('form-msg-error'); }
         form.reset();
         if (btn) btn.disabled = false;
+        form.dispatchEvent(new CustomEvent('tspdf-newsletter-saved', { bubbles: true }));
+      }
+      function fail() {
+        if (msg) { msg.textContent = "Something went wrong — please try again in a moment."; msg.classList.add('form-msg-error'); }
+        if (btn) btn.disabled = false;
+      }
+
+      // Basic client-side email sanity check (not a security control — the
+      // real validation lives in Firestore security rules server-side).
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254;
+      if (!emailOk) {
+        if (msg) { msg.textContent = 'Please enter a valid email address.'; msg.classList.add('form-msg-error'); }
+        return;
       }
 
       if (btn) btn.disabled = true;
 
-      if (window.firebase && firebase.apps && firebase.apps.length && email && firebase.firestore) {
+      if (window.firebase && firebase.apps && firebase.apps.length && firebase.firestore) {
         firebase.firestore().collection('newsletter_subscribers').add({
           email: email,
           page: window.location.pathname,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(finish).catch(function (err) {
+        }).then(succeed).catch(function (err) {
           console.error('Newsletter save failed:', err);
-          finish(); // don't expose the failure to the visitor
+          fail(); // tell the visitor honestly instead of a false "Thanks!"
         });
       } else {
-        finish();
+        console.error('Newsletter save skipped: Firebase/Firestore not available.');
+        fail();
       }
     });
   });
@@ -167,10 +184,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var subForm = subPopup.querySelector('.real-newsletter-form');
     if (subForm) {
-      subForm.addEventListener('submit', function () {
+      subForm.addEventListener('tspdf-newsletter-saved', function () {
         localStorage.setItem('tspdf-subscribed', '1');
         setTimeout(hideSubPopup, 1800);
       });
+      // Deliberately no 'submit' listener here — marking subscribed and
+      // hiding the popup now only happens once Firestore actually
+      // confirms the save (see the 'tspdf-newsletter-saved' event above).
+      // On failure, the shared handler in the earlier listener shows an
+      // error inside the popup and leaves it open so the visitor can retry.
     }
 
     document.addEventListener('keydown', function (e) {

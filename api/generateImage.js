@@ -38,34 +38,66 @@ const ALLOWED_ORIGINS = [
 ];
 
 // --- Firebase ID token verification -----------------------------------
-// See api/generateText.js for full notes. Requires FIREBASE_SERVICE_ACCOUNT_KEY
-// to be set in Vercel; fails open (same as today) until it is.
+// See api/generateText.js for full notes. SECURITY: fails CLOSED now —
+// missing service-account config or a missing/invalid token both reject
+// the request; neither case is allowed through.
 let _adminApp;
+let _adminInitError = null;
 function getAdmin() {
   if (_adminApp) return _adminApp;
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) return null;
-  const admin = require("firebase-admin");
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
-    });
+  if (_adminInitError) return null;
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    _adminInitError = "FIREBASE_SERVICE_ACCOUNT_KEY is not set";
+    return null;
   }
-  _adminApp = admin;
-  return admin;
+  try {
+    const admin = require("firebase-admin");
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
+      });
+    }
+    _adminApp = admin;
+    return admin;
+  } catch (e) {
+    console.error("Firebase Admin init failed:", e);
+    _adminInitError = e.message || "init failed";
+    return null;
+  }
 }
 
 async function verifyUser(req) {
   const admin = getAdmin();
-  if (!admin) return { ok: true, uid: null };
+  if (!admin) return { ok: false, code: 500, error: _adminInitError };
   const authHeader = req.headers.authorization || "";
   const match = authHeader.match(/^Bearer (.+)$/);
-  if (!match) return { ok: false };
+  if (!match) return { ok: false, code: 401 };
   try {
     const decoded = await admin.auth().verifyIdToken(match[1]);
     return { ok: true, uid: decoded.uid };
   } catch (e) {
-    return { ok: false };
+    return { ok: false, code: 401 };
   }
+}
+
+// --- Minimal in-memory rate limiting -----------------------------------
+// Same reliability caveat as api/generateText.js (does NOT hold across
+// serverless instances — use Upstash Redis/Vercel KV for real production
+// limits). Image generation is capped tighter than text since it's more
+// expensive per request.
+const _rateBuckets = new Map();
+const RATE_LIMIT_MAX = 8; // requests
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // per 10 minutes, per uid
+function checkRateLimit(uid) {
+  const now = Date.now();
+  const bucket = _rateBuckets.get(uid);
+  if (!bucket || now - bucket.start > RATE_LIMIT_WINDOW_MS) {
+    _rateBuckets.set(uid, { start: now, count: 1 });
+    return true;
+  }
+  if (bucket.count >= RATE_LIMIT_MAX) return false;
+  bucket.count += 1;
+  return true;
 }
 
 module.exports = async function handler(req, res) {
@@ -76,7 +108,7 @@ module.exports = async function handler(req, res) {
   }
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
     res.status(200).end();
@@ -87,13 +119,35 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const auth = await verifyUser(req);
-  if (!auth.ok) {
-    res.status(401).json({ error: "Please sign in to use AI tools." });
+  const contentType = req.headers["content-type"] || "";
+  if (!contentType.includes("application/json")) {
+    res.status(400).json({ error: "Content-Type must be application/json." });
     return;
   }
 
-  const { tool, input } = req.body || {};
+  const auth = await verifyUser(req);
+  if (!auth.ok) {
+    if (auth.code === 500) {
+      console.error("Auth verification unavailable:", auth.error);
+      res.status(500).json({ error: "Server is temporarily misconfigured. Please try again shortly." });
+    } else {
+      res.status(401).json({ error: "Please sign in to use AI tools." });
+    }
+    return;
+  }
+
+  if (!checkRateLimit(auth.uid)) {
+    res.status(429).json({ error: "Too many image requests — please wait a few minutes and try again." });
+    return;
+  }
+
+  const body = req.body || {};
+  const { tool, input } = body;
+
+  if (typeof tool !== "undefined" && typeof tool !== "string") {
+    res.status(400).json({ error: "Invalid 'tool' value." });
+    return;
+  }
   if (!input || typeof input !== "string" || !input.trim()) {
     res.status(400).json({ error: "Missing 'input' description." });
     return;
@@ -103,7 +157,9 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const systemPrompt = TOOL_PROMPTS[tool] || TOOL_PROMPTS.default;
+  const systemPrompt = Object.prototype.hasOwnProperty.call(TOOL_PROMPTS, tool)
+    ? TOOL_PROMPTS[tool]
+    : TOOL_PROMPTS.default;
 
   try {
     const geminiRes = await fetch(

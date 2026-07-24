@@ -1,23 +1,37 @@
 /* ============================================================
-   Vercel Serverless Function — /api/generateText
-   FREE (no card needed for Vercel's Hobby plan).
-   This is the only place your Gemini API key lives; the website
-   calls this endpoint, this function calls Gemini, the key never
-   touches the browser.
+   ⚠️ LEGACY / NOT IN PRODUCTION — moved to _legacy/ on 23 Jul 2026.
 
-   HOW TO DEPLOY:
-     1. Put this file at:  api/generateText.js
-        (inside your project's root folder, next to index.html)
-     2. In Vercel dashboard → your project → "Settings" →
-        "Environment Variables" → Add:
-          Name:  GEMINI_API_KEY
-          Value: <your Gemini key from aistudio.google.com/apikey>
-        → Save
-     3. Deploy (push to GitHub if connected, or re-upload /
-        redeploy from the Vercel dashboard)
-     4. Your endpoint will be:
-        https://YOUR-PROJECT.vercel.app/api/generateText
-     5. Paste that URL into firebase-config.js as
+   firebase-config.js's window.TSPDF_AI_ENDPOINT points at
+   https://www.techsinghge.in/api/generateText (the Vercel serverless
+   function in /api/generateText.js), which is the live production
+   backend. No page on the site currently references this file.
+
+   Kept here only as a documented fallback/reference in case you ever
+   want to move off Vercel to Cloudflare Workers — it is NOT deployed
+   and NOT called by anything today. If you confirm you'll never need
+   it, it's safe to delete outright.
+   ============================================================ */
+
+/* ============================================================
+   Cloudflare Worker — generateText
+   FREE alternative to Firebase Cloud Functions (no card, no
+   billing plan needed). This is the only place your Gemini API
+   key lives; the website calls this Worker, the Worker calls
+   Gemini, the key never touches the browser.
+
+   HOW TO DEPLOY (no terminal needed):
+     1. Go to https://dash.cloudflare.com → sign up free (no card)
+     2. Left sidebar → "Workers & Pages" → "Create" → "Create Worker"
+     3. Give it a name, e.g. "techsinghge-ai" → Deploy (deploys a
+        blank starter worker first)
+     4. Click "Edit code" → delete everything in the editor →
+        paste this WHOLE file in → click "Deploy"
+     5. Go to the Worker's "Settings" → "Variables and Secrets" →
+        "Add" → Name: GEMINI_API_KEY, Value: <your Gemini key>,
+        Type: Secret → Save and deploy
+     6. Copy the Worker's URL (looks like
+        https://techsinghge-ai.YOUR-SUBDOMAIN.workers.dev)
+     7. Paste that URL into firebase-config.js as
         window.TSPDF_AI_ENDPOINT
    ============================================================ */
 
@@ -42,7 +56,6 @@ const TOOL_PROMPTS = {
   "mcq-generator": "You are an expert quiz creator. Generate multiple-choice questions (with 4 options each and the correct answer marked) based on the user's topic or text. Only output the MCQs.",
   "interview-question-generator": "You are an expert interviewer. Generate a list of relevant interview questions based on the user's role or topic. Only output the questions.",
   "code-generator": "You are an expert software engineer. Write clean, working code based on the user's request. Only output the code, with brief inline comments where helpful.",
-  "coding-assistant": "You are an expert, friendly coding assistant covering any language or framework. Help the user with their code — write code, debug errors, explain concepts, suggest fixes, or review snippets, based on what they ask. Be direct and practical, and include short code blocks where relevant.",
   "code-explainer": "You are an expert software engineer. Explain what the user's code does, clearly and step by step, in plain language. Only output the explanation.",
   "sql-generator": "You are an expert in SQL. Write a correct SQL query based on the user's plain-English request. Only output the SQL query, with a brief comment if helpful.",
   "regex-generator": "You are an expert in regular expressions. Write a correct regex pattern based on the user's plain-English request, and briefly explain it. Only output the regex and a one-line explanation.",
@@ -70,182 +83,100 @@ const TOOL_PROMPTS = {
 
 const MAX_INPUT_CHARS = 4000;
 
-// Only these origins are allowed to call this endpoint. Restricting this
-// (instead of using "*") stops other sites from using your Gemini quota.
-const ALLOWED_ORIGINS = [
-  "https://www.techsinghge.in",
-  "https://techsinghge.in"
-];
+// CHANGE THIS to your real website's origin before going live,
+// e.g. "https://www.techsinghge.in" — restricting it stops other
+// sites from using your free Gemini quota.
+const ALLOWED_ORIGIN = "*";
 
-// --- Firebase ID token verification -----------------------------------
-// Requires the FIREBASE_SERVICE_ACCOUNT_KEY env var (the full JSON key
-// for a Firebase service account, as a single-line string) to be set in
-// Vercel. SECURITY: this now FAILS CLOSED. If the service account isn't
-// configured, or a token is missing/invalid, the request is rejected —
-// it is never allowed through silently.
-let _adminApp;
-let _adminInitError = null;
-function getAdmin() {
-  if (_adminApp) return _adminApp;
-  if (_adminInitError) return null;
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    _adminInitError = "FIREBASE_SERVICE_ACCOUNT_KEY is not set";
-    return null;
-  }
-  try {
-    const admin = require("firebase-admin");
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type"
+  };
+}
+
+export default {
+  async fetch(request, env) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders() });
+    }
+    if (request.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Use POST" }), {
+        status: 405,
+        headers: { "Content-Type": "application/json", ...corsHeaders() }
       });
     }
-    _adminApp = admin;
-    return admin;
-  } catch (e) {
-    console.error("Firebase Admin init failed:", e);
-    _adminInitError = e.message || "init failed";
-    return null;
-  }
-}
 
-// Returns one of:
-//   { ok: true, uid }        — valid token, request may proceed
-//   { ok: false, code: 401 } — missing/invalid token
-//   { ok: false, code: 500 } — server misconfiguration (admin unavailable)
-async function verifyUser(req) {
-  const admin = getAdmin();
-  if (!admin) return { ok: false, code: 500, error: _adminInitError };
-  const authHeader = req.headers.authorization || "";
-  const match = authHeader.match(/^Bearer (.+)$/);
-  if (!match) return { ok: false, code: 401 };
-  try {
-    const decoded = await admin.auth().verifyIdToken(match[1]);
-    return { ok: true, uid: decoded.uid };
-  } catch (e) {
-    return { ok: false, code: 401 };
-  }
-}
-
-// --- Minimal in-memory rate limiting -----------------------------------
-// IMPORTANT CAVEAT: Vercel serverless functions are stateless across
-// invocations/instances, so this Map is NOT reliable as a global limit —
-// under real traffic, different requests can land on different instances
-// each with their own empty Map, so a determined abuser can exceed this.
-// It DOES help against a single instance being hammered in a short burst,
-// and costs nothing. For real production-grade limiting (enforced across
-// all instances), use a shared store such as Upstash Redis or Vercel KV
-// with a sliding-window counter keyed by Firebase UID — recommended before
-// this tool gets meaningful traffic.
-const _rateBuckets = new Map();
-const RATE_LIMIT_MAX = 20; // requests
-const RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // per 5 minutes, per uid
-function checkRateLimit(uid) {
-  const now = Date.now();
-  const bucket = _rateBuckets.get(uid);
-  if (!bucket || now - bucket.start > RATE_LIMIT_WINDOW_MS) {
-    _rateBuckets.set(uid, { start: now, count: 1 });
-    return true;
-  }
-  if (bucket.count >= RATE_LIMIT_MAX) return false;
-  bucket.count += 1;
-  return true;
-}
-
-module.exports = async function handler(req, res) {
-  // CORS
-  const origin = req.headers.origin;
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  if (req.method === "OPTIONS") {
-    res.status(200).end();
-    return;
-  }
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "Use POST" });
-    return;
-  }
-
-  const contentType = req.headers["content-type"] || "";
-  if (!contentType.includes("application/json")) {
-    res.status(400).json({ error: "Content-Type must be application/json." });
-    return;
-  }
-
-  const auth = await verifyUser(req);
-  if (!auth.ok) {
-    if (auth.code === 500) {
-      console.error("Auth verification unavailable:", auth.error);
-      res.status(500).json({ error: "Server is temporarily misconfigured. Please try again shortly." });
-    } else {
-      res.status(401).json({ error: "Please sign in to use AI tools." });
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Invalid JSON body." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders() }
+      });
     }
-    return;
-  }
 
-  if (!checkRateLimit(auth.uid)) {
-    res.status(429).json({ error: "Too many requests — please wait a few minutes and try again." });
-    return;
-  }
+    const { tool, input } = body || {};
+    if (!input || typeof input !== "string" || !input.trim()) {
+      return new Response(JSON.stringify({ error: "Missing 'input' text." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders() }
+      });
+    }
+    if (input.length > MAX_INPUT_CHARS) {
+      return new Response(
+        JSON.stringify({ error: `Input too long — keep it under ${MAX_INPUT_CHARS} characters.` }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+      );
+    }
 
-  const body = req.body || {};
-  const { tool, input } = body;
+    const systemPrompt = TOOL_PROMPTS[tool] || TOOL_PROMPTS.default;
 
-  if (typeof tool !== "undefined" && typeof tool !== "string") {
-    res.status(400).json({ error: "Invalid 'tool' value." });
-    return;
-  }
-  if (!input || typeof input !== "string" || !input.trim()) {
-    res.status(400).json({ error: "Missing 'input' text." });
-    return;
-  }
-  if (input.length > MAX_INPUT_CHARS) {
-    res.status(400).json({ error: `Input too long — keep it under ${MAX_INPUT_CHARS} characters.` });
-    return;
-  }
+    try {
+      const geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: "user", parts: [{ text: input }] }]
+          })
+        }
+      );
 
-  // Allowlist lookup — an unrecognized/unexpected 'tool' value can never
-  // reach the model with anything other than the safe default prompt.
-  const systemPrompt = Object.prototype.hasOwnProperty.call(TOOL_PROMPTS, tool)
-    ? TOOL_PROMPTS[tool]
-    : TOOL_PROMPTS.default;
-
-  try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ role: "user", parts: [{ text: input }] }]
-        })
+      if (!geminiRes.ok) {
+        const errText = await geminiRes.text();
+        console.error("Gemini error:", errText);
+        return new Response(JSON.stringify({ error: "AI provider error. Please try again." }), {
+          status: 502,
+          headers: { "Content-Type": "application/json", ...corsHeaders() }
+        });
       }
-    );
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      console.error("Gemini error:", errText);
-      res.status(502).json({ error: "AI provider error. Please try again." });
-      return;
+      const data = await geminiRes.json();
+      const text =
+        data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
+
+      if (!text) {
+        return new Response(JSON.stringify({ error: "No text was generated. Please try again." }), {
+          status: 502,
+          headers: { "Content-Type": "application/json", ...corsHeaders() }
+        });
+      }
+
+      return new Response(JSON.stringify({ text }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders() }
+      });
+    } catch (err) {
+      console.error(err);
+      return new Response(JSON.stringify({ error: "Something went wrong generating text." }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders() }
+      });
     }
-
-    const data = await geminiRes.json();
-    const text =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
-
-    if (!text) {
-      res.status(502).json({ error: "No text was generated. Please try again." });
-      return;
-    }
-
-    res.status(200).json({ text });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Something went wrong generating text." });
   }
-}
+};
